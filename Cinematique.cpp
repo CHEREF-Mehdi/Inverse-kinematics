@@ -3,8 +3,8 @@
 
 /** Déclaration des variables ****************************************/
 
-const int N{10};			   // Le nombre de bras du mobile articulé
-const short noSolution = {50}; //max d'irations pour trouver une solution
+const int N{20};						// Le nombre de bras du mobile articulé
+const unsigned short noSolution = {50}; //max d'irations pour trouver une solution
 
 vec Thetas;		// Les angles associés à chaque bras
 vec Longueurs;	// Les longueurs de chaque bras
@@ -24,7 +24,6 @@ void computePivotCoordinates()
 {
 	// A FAIRE
 	float sumT = Thetas(0);
-
 	Pivots(0, 0) = Longueurs(0) * cos(sumT);
 	Pivots(0, 1) = Longueurs(0) * sin(sumT);
 	for (int i = 1; i < N; i++)
@@ -38,6 +37,7 @@ void computePivotCoordinates()
 // Calcul de la norme euclidienne d'un vecteur
 float norm(vec V)
 {
+	// A FAIRE
 	return arma::norm(V);
 }
 
@@ -52,11 +52,10 @@ void computeCoordinates(vec Cible)
 	// On évalue la différence de position */
 	// A FAIRE
 	computePivotCoordinates();
-	E(0) = Cible(0) - Pivots(N - 1, 0);
-	E(1) = Cible(1) - Pivots(N - 1, 1);
+	E = Cible - Pivots.row(N - 1).t();
 
 	// Tant que la différence est grande, on continue à chercher ...
-	short cpt = 0;
+	unsigned short cpt = 0;
 	while (norm(E) >= 0.01f && cpt < noSolution)
 	{
 
@@ -64,6 +63,7 @@ void computeCoordinates(vec Cible)
 		// A FAIRE
 		for (int i = 0; i < N; i++)
 		{
+			//Jacobien(0, i) = -(-Pivots(N - 1, 1) -Pivots(i, 1)) ;
 			Jacobien(0, i) = Pivots(i, 1) - Pivots(N - 1, 1);
 			Jacobien(1, i) = Pivots(N - 1, 0) - Pivots(i, 0);
 		}
@@ -71,21 +71,25 @@ void computeCoordinates(vec Cible)
 		// Calcul de son pseudo Inverse
 		// A FAIRE
 		JacInverse = pinv(Jacobien);
+
 		// Calcul des variations d'angles en découlant
 		// A FAIRE
 		lambdas = JacInverse * E;
+
 		// On recalcule les nouveaux angles modifiés et les nouveaux pivots induits
 		// A FAIRE
 		float max_lambda = max(lambdas);
+
 		float toRadian = 2 * PI / 180;
 		if (max_lambda > toRadian)
 			lambdas *= toRadian / max_lambda;
+
 		Thetas = Thetas + lambdas;
+
 		// On met à jour l'évaluation de l'erreur
 		// A FAIRE
 		computePivotCoordinates();
-		E(0) = Cible(0) - Pivots(N - 1, 0);
-		E(1) = Cible(1) - Pivots(N - 1, 1);
+		E = Cible - Pivots.row(N - 1).t();
 
 		cpt++;
 	}
